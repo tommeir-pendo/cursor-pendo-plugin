@@ -9,10 +9,10 @@ Name one on every outcome claim.
 
 | Level | When | Words allowed |
 | --- | --- | --- |
-| **Sent only** | No outcome measured | "N people were sent it or saw it" |
+| **Sent only** | No outcome measured | "N visitors were sent it or saw it" |
 | **Before and after** | The outcome trend around the send, with no comparison group | "Use of X rose from A to B in the week after the send." |
-| **Engaged and not engaged compared** | People who engaged compared with people who didn't, after the send | "People who opened did X more often (a compared with b)." |
-| **Compared, with a before comparison** | The same comparison for an equal period **before** the send, shown next to it | "The gap was c before the send and d after." |
+| **Engaged and not engaged compared** | Visitors who engaged compared with visitors who didn't, after the send | "Visitors who opened did X more often (a compared with b)." |
+| **Compared, with a before comparison** | The same comparison for an equal period **before** the send, shown next to it, when the audience doesn't make the before rates 0 by design | "The gap was c before the send and d after." |
 | **Holdout test** (a held-back group) | A random group was held back from the journey | "The journey raised X by …" Orchestrate journeys can't do this yet: the held-back group setting is stored but not used |
 
 Never write "caused", "drove", "because of the journey", "lift", "ROI" or a money figure below *Holdout test*.
@@ -29,7 +29,7 @@ Follow the contract's *Find the outcome item* method. In this order:
 Start the answer with reach in one line (entered, sent, never sent), then the outcome.
 
 **State the success rule in words**, for example "used report builder at least once within 14 days of the
-send". If it says "within N days of **each person's** email", note that per-person send times can't be read.
+send". If it says "within N days of **each visitor's** email", note that per-visitor send times can't be read.
 Use the send dates, labelled as an approximation.
 
 ## 2. Check before measuring
@@ -58,13 +58,15 @@ Use the contract's method, for each main email step:
    - non-openers who did it, before.
 
 **Guide steps:** use step visitors with `eventType=viewed`.
-- Up to 5,000 people: measure them with `Pendo:entityUsage` against the same outcome, in batches of 500 visitor IDs (the
+- Up to 5,000 visitors: measure them with `Pendo:entityUsage` against the same outcome, in batches of 500 visitor IDs (the
   tool's limit), and add the batches up.
 - Over 5,000: say the comparison is not available for this step.
 
 **Two horizons, always.** Repeat the after window at a second length (for example 7 or 14 days, and 28 days or
 to date). Say whether the gap holds, narrows or closes. Non-engagers often catch up later, which means the
-journey changed *timing*, not whether people acted. One horizon is not enough to call a result.
+journey changed *timing*, not whether visitors acted. One horizon is not enough to call a result.
+"Closes" means the later gap is about 0. A gap that stays about the same size holds, even when it's small: give
+it in points at both horizons.
 
 **Where the gap comes from.** If clickers explain most of it, say so: a click on the email's call to action
 leads straight to the outcome.
@@ -72,7 +74,10 @@ leads straight to the outcome.
 ## 4. Compute
 
 - Report the four rates and the two gaps (after minus before), each with its numerator and denominator.
-- Call the result *Compared, with a before comparison*.
+- Name the level the data supports. If the audience excludes visitors who already did the outcome (for example
+  "has not used X"), nobody sent the email can have done it before, so both before rates are 0 by design. Then
+  name the level *Engaged and not engaged compared* and say the before check couldn't be run because of the
+  audience. Otherwise call it *Compared, with a before comparison*.
 - Say no interval was computed. Do not compute one yourself.
 
 ## 5. Say it

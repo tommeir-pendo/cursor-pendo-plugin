@@ -58,3 +58,6 @@ they meant.
    journey to edit. Do not call any set/write tool until the user picks one.
 
 Never mutate using a display name alone — you need a single `journeyId` first.
+
+Listing applications and journeys to find the target is fine before you've identified it. Reading one journey's
+data (steps, emails, metrics, visitors) waits until exactly one journey is resolved.

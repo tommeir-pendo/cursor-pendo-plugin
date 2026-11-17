@@ -18,22 +18,22 @@ number). Say which base you used.
    doesn't return it.
 2. `Pendo:getOrchestrateJourneyVisitors` with `enrollmentFilter=all` and `limit` 1 for the uncapped `summary.numVisitors`.
    If that's under 5,000 (or a split brings it there), read the rows (up to 5,000) for:
-   - each person's `enteredAt`;
-   - each person's step entry times;
-   - where each in-progress person is now.
+   - each visitor's `enteredAt`;
+   - each visitor's step entry times;
+   - where each in-progress visitor is now.
 
    Note `meta.evaluatedAt` and `summary.truncated`.
 3. `Pendo:getOrchestrateJourneyStepMetrics` over the journey's live dates.
 4. `Pendo:getOrchestrateJourneyStepVisitors` with `eventType=sent`, then `delivered`, for the email step in question.
 5. `Pendo:getSegment` on the entry segment.
 
-## Build a step-by-step count of people
+## Build a step-by-step count of visitors
 
-Use one column for each stage, and keep the same unit (people) all the way down:
+Use one column for each stage, and keep the same unit (visitors) all the way down:
 
 1. **Entered**: `Pendo:getOrchestrateJourneyVisitors` with `all` and `limit` 1, `summary.numVisitors`. Read rows only
    if entered is under 5,000 or a split brings it there.
-2. **Reached the step**: people whose `stepVisits` include the step. If the list is cut even after splitting,
+2. **Reached the step**: visitors whose `stepVisits` include the step. If the list is cut even after splitting,
    write **Not counted** and give what the rows you have show, labelled as the first rows by visitor ID.
 3. **Sent**: step metrics.
 4. **Delivered**: step metrics.
@@ -47,13 +47,17 @@ Use two lists, never mixed.
 
 **Counted** (from tool fields, or with a counting method from the contract). A number you got by subtracting
 one read's count from another's (sent minus completed, active minus sent) is not counted: the two reads count
-different people and windows. Put it under possible causes, with the read that would count it.
-- People still waiting before the step, as of `meta.evaluatedAt`: they are in progress at an earlier step.
-- People whose wait ends after the schedule end: they will never reach the step.
-- People already marked completed (`completed=true`) before the step, whether by an exit step or a required goal.
+different visitors and windows. Put it under possible causes, with the read that would count it.
+- Visitors still waiting before the step, as of `meta.evaluatedAt`: they are in progress at an earlier step.
+- Visitors whose wait ends after the schedule end: they will never reach the step.
+- Mutually exclusive branches. When a conditional split sends each visitor down one branch, the first email's sent
+  count on each other branch, over the same dates, is a counted lower bound for routing. Report it as counted,
+  labelled "emails sent, about one for each visitor", before you list routing as a possible cause. You can't read
+  the split rule, so don't say who it chose or why.
+- Visitors already marked completed (`completed=true`) before the step, whether by an exit step or a required goal.
 - Bounces, from step metrics. A bounce happens after a send, so it never explains a missing send.
 **Matched on today's audience** (supporting evidence for a possible cause, not a count of entrants):
-- **No email address.** "N of today's audience have no email address" (contract: *People with no email address*).
+- **No email address.** "N of today's audience have no email address" (contract: *Visitors with no email address*).
 - **Inactive for over 12 months,** when `reachInactiveVisitors` is false and the audience rule doesn't already
   require recent activity (if it does, skip this and say why). Use `Pendo:buildPendoSegment` for a last
   visit more than 365 days before the journey started, then `Pendo:listVisitors`.
@@ -61,11 +65,11 @@ different people and windows. Put it under possible causes, with the read that w
   or a rule on recent activity), give the number as an indication only.
 
 **Possible causes** (not counted; label each one and name the check that would confirm it):
-- **Left the entry segment.** Possible when `retainVisitorsAfterEntry=false` and the rule is one people leave by
+- **Left the entry segment.** Possible when `retainVisitorsAfterEntry=false` and the rule is one visitors leave by
   acting.
-- **Completed through the goal.** Which completed people were removed for reaching a required goal. Optional goals remove nobody. Confirm by checking the goal item's events after each person's `enteredAt`.
+- **Completed through the goal.** Which completed visitors were removed for reaching a required goal. Optional goals remove nobody. Confirm by checking the goal item's events after each visitor's `enteredAt`.
 - **Unsubscribed or suppressed** before the send.
-- **Throttled at entry.** This explains people **missing from "entered"**, never a missing send. Who was held
+- **Throttled at entry.** This explains visitors **missing from "entered"**, never a missing send. Who was held
   is not recorded.
 - **Email throttle.** A possible cause of a missing send, effect unknown. Never call it the cause.
 - **Third-party email steps** (HubSpot, Marketo, Eloqua). Pendo sees only the hand-off, and its metrics can lag
@@ -74,14 +78,14 @@ different people and windows. Put it under possible causes, with the read that w
 Never say "today's segment" is the audience the journey had. Segments are evaluated on today's data.
 
 **Also say:**
-- *Completed* is not a drop-off. It means people who reached an exit step or the journey's end.
+- *Completed* is not a drop-off. It means visitors who reached an exit step or the journey's end.
 - *Entered* is visitors. If the audience is defined by account, or the asker talks about accounts, give the
   accounts reached too (contract: *Accounts*).
 
 ## Timing questions
 
 - **Configured time to each message** is the sum of the waits on the path, from `Pendo:getOrchestrateJourneySteps`.
-  Explain what each wait means: a wait after a message is how long people stay before the next step.
+  Explain what each wait means: a wait after a message is how long visitors stay before the next step.
 - **Observed lag:** use the contract's *How long until a message is sent* method: daily entries against daily
   sends. Give the share sent the same day and the next day or later.
 - Check the schedule's day rules (weekend skips) and say how they move the dates.
@@ -92,12 +96,12 @@ Never say "today's segment" is the audience the journey had. Segments are evalua
 When asked "who" or "can I export them":
 - **Where you can write files:** save the IDs to a CSV and give the path. Never paste visitor IDs into a
   shared answer.
-- **Where you can't:** give the counts, and say the per-person list is not available here.
+- **Where you can't:** give the counts, and say the per-visitor list is not available here.
 - **If a list was cut at 5,000:** say so, and say the rows are the first 5,000 by visitor ID, not a sample.
 
 ## Cannot answer
 
-- The recorded reason a specific person was not sent an email. It is not stored.
-- How many people the journey throttle held. It is not stored.
+- The recorded reason a specific visitor was not sent an email. It is not stored.
+- How many visitors the journey throttle held. It is not stored.
 
 Say both plainly when asked.

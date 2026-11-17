@@ -85,5 +85,14 @@ Search for the goal (page, feature, or track event) with `Pendo:listCountables` 
 Use `Pendo:setOrchestrateJourneyName` and `Pendo:setOrchestrateJourneyDescription` — read each tool's MCP description when
 you call it.
 
+---
+
+## After every write
+
+Before each write, read what it will change: `Pendo:getOrchestrateJourney`, or `Pendo:getOrchestrateJourneySteps` for a
+conditional split. After the write, read it again and compare the whole object with the first read. Tell the user
+about any field or stage you didn't ask for. For example, a saved audience can come back with an extra filter stage
+that narrows who enters.
+
 After configuration, summarize what was set. Do not claim the journey is ready to activate — see
 **Do not infer unobservable state** in `SKILL.md`. Use `references/handoff.md` if the user asks about go-live.

@@ -15,7 +15,8 @@ Use when the user asks to **write, draft, add, or update** email content. Run
    `Pendo:updateOrchestrateEmailContent`.
 3. **Before drafting or saving** — for each email step you will update, call `Pendo:getOrchestrateEmail` with that
    `messageId` (for `emailType` and status). Follow `Pendo:updateOrchestrateEmailContent`'s `WithWorkflow` before calling
-   the write tool.
+   the write tool. In that read, `__EMPTY__` (a subject, for example) means the field is set and empty. A
+   field the response doesn't include wasn't returned: say "not returned", never "none", "empty" or "not set".
 4. Draft HTML; iterate with the user; call `Pendo:updateOrchestrateEmailContent` per approved email. After a successful
    save, tell the user what the tool returned (`resultSummary`, `emailUrl`); do not claim the email was previewed
    in the UI unless the user did.

@@ -12,7 +12,7 @@ answer.
 
 **Count with `limit` 1, list only when you need rows.** Visitor tools' summary counts aren't capped by
 `limit`, and a 5,000-row reply is several megabytes: more than a client without code can hold. A `limit` 1 call
-still returns one row with a visitor ID or email: never print it. Ask for rows only for a per-person method, and
+still returns one row with a visitor ID or email: never print it. Ask for rows only for a per-visitor method, and
 only when the count fits under 5,000 or a split brings it there. Say so when a method needed rows you couldn't
 read.
 
@@ -25,17 +25,17 @@ more (up to 500). The defaults look like a complete answer and aren't. Summary c
 | --- | --- | --- | --- |
 | `Pendo:listOrchestrateJourneys` | All journeys, optional `status` | `limit` ≤ 500 with `offset`. **No total**: page until a short page | No name filter. Match by name, then by `appId` |
 | `Pendo:getOrchestrateJourney` | One journey's configuration | — | Goal (whether it's required is only in `Pendo:getOrchestrateJourneyMetrics`: `goal.isGoalOptional`), entry segment, schedule, `ignoreThrottling`, `reachInactiveVisitors`, `retainVisitorsAfterEntry`, `controlGroupSize`. No step graph, no email content, no split rules |
-| `Pendo:getOrchestrateJourneySteps` | Step graph | — | Steps, edges, `messageId`, `messageType`, `durationInDays`. On an email step, `durationInDays` is the wait until the next step. On a guide step, it's how long the guide stays available to the person; whether people move on sooner isn't shown. Condition steps return a label only, not the rule |
+| `Pendo:getOrchestrateJourneySteps` | Step graph | — | Steps, edges, `messageId`, `messageType`, `durationInDays`. On an email step, `durationInDays` is the wait until the next step. On a guide step, it's how long the guide stays available to the visitor; whether visitors move on sooner isn't shown. Condition steps return a label only, not the rule |
 | `Pendo:getOrchestrateJourneyMetrics` | Entered, completed, goal achievers | — | With a date range, `visitorsAchievedGoal` and `goalAttainmentRate` are **dropped**. Goal numbers are cumulative only |
-| `Pendo:getOrchestrateJourneyStepMetrics` | Per message step, people who **entered within the date range and whose event is also in it**. Events after the end date aren't counted | — | Counts are unique people per step, never emails |
-| `Pendo:getOrchestrateJourneyStepVisitors` | Per person, one step, entrants in the range, events in the range | ≤ 5,000 rows. `summary.numVisitors` is the full count; `summary.truncated` | Rows sorted by visitor ID. `eventType` decides who appears |
+| `Pendo:getOrchestrateJourneyStepMetrics` | Per message step, visitors who **entered within the date range and whose event is also in it**. Events after the end date aren't counted | — | Counts are unique visitors per step, never emails |
+| `Pendo:getOrchestrateJourneyStepVisitors` | Per visitor, one step, entrants in the range, events in the range | ≤ 5,000 rows. `summary.numVisitors` is the full count; `summary.truncated` | Rows sorted by visitor ID. `eventType` decides who appears |
 | `Pendo:getOrchestrateJourneyVisitors` | Who is in the journey **now** (point in time, `meta.evaluatedAt`) | ≤ 5,000 rows. `summary.numVisitors` is uncapped; `summary.truncated` | Default filter is `active`: use `all` for everyone who ever entered. Each row has `enteredAt` and `stepVisits[].enteredAt`. `meta.enrollmentAvailable=false` means no list yet |
-| `Pendo:getOrchestrateVisitorJourneyState` | One person, all active or paused journeys | ≤ 5,000 | **Omits journeys where the person hit the entry throttle.** Ended journeys may be missing. `awaitingMessage` can stay true after the message was sent or bounced: check `Pendo:getOrchestrateVisitorEmails` before saying a message is still pending |
-| `Pendo:getOrchestrateVisitorEmails` | One person, emails in the range | ≤ 5,000. `summary.truncated` | One person per call. `eventType` defaults to opened: pass `delivered` (or `sent`) to count what the person received |
+| `Pendo:getOrchestrateVisitorJourneyState` | One visitor, all active or paused journeys | ≤ 5,000 | **Omits journeys where the visitor hit the entry throttle.** Ended journeys may be missing. `awaitingMessage` can stay true after the message was sent or bounced: check `Pendo:getOrchestrateVisitorEmails` before saying a message is still pending |
+| `Pendo:getOrchestrateVisitorEmails` | One visitor, emails in the range | ≤ 5,000. `summary.truncated` | One visitor per call. `eventType` defaults to opened: pass `delivered` (or `sent`) to count what the visitor received |
 | `Pendo:listOrchestrateEmails` | Standalone **and** journey emails | `limit` ≤ 500 with `offset`. **No total** | Has a `name` filter. Survey emails are excluded |
 | `Pendo:getOrchestrateEmail` | One email's configuration | — | `attributes.journeyId` is set when the email belongs to a journey |
-| `Pendo:getOrchestrateEmailMetrics` | One email, unique people, all its sends in the range | — | `metricsScope` and `segmentPipeline` (see Methods) |
-| `Pendo:getOrchestrateEmailVisitors` | Per person, one email | `limit` ≤ 5,000, no cursor. **No `truncated` field**: compare `summary.numVisitors` with the row count | A bounced row can also show delivered. Not delivered minus bounced has no reason field: report that gap as unexplained |
+| `Pendo:getOrchestrateEmailMetrics` | One email, unique visitors, all its sends in the range | — | `metricsScope` and `segmentPipeline` (see Methods) |
+| `Pendo:getOrchestrateEmailVisitors` | Per visitor, one email | `limit` ≤ 5,000, no cursor. **No `truncated` field**: compare `summary.numVisitors` with the row count | A bounced row can also show delivered. Not delivered minus bounced has no reason field: report that gap as unexplained |
 
 All date ranges are inclusive, in the subscription's time zone, at most 367 days. All rates are on a 0–100
 scale. Bounced means hard bounces only.
@@ -45,40 +45,40 @@ scale. Bounced means hard bounces only.
 ## What the numbers mean
 
 **Goal.**
-- A person counts as reaching the goal when their last use of the goal page, feature or track event is on
+- A visitor counts as reaching the goal when their last use of the goal page, feature or track event is on
   or after the moment they entered the journey.
 - There is no end date and no link to any one message.
-- It is counted per person, not per account.
-- It does not depend on the person still being in the entry segment. People who left the segment still count.
+- It is counted per visitor, not per account.
+- It does not depend on the visitor still being in the entry segment. Visitors who left the segment still count.
 - The journey's Metrics tab uses a different rule (goal events inside the journey's scheduled dates, divided by
   all entrants). Name the rule next to every goal number.
 
 **Goal achievers and later messages.**
-- When the goal is **required**, people who reach it are marked completed and removed from later messages.
+- When the goal is **required**, visitors who reach it are marked completed and removed from later messages.
 - When the goal is **optional**, nobody is removed.
 - Check which one before you blame the goal for missing sends.
 
 **Toggle goals.** A goal on a toggle feature counts the click whether it turned something on or off. Say
 "used the toggle", never "enabled". Read the goal item with `Pendo:getEntity` to see what it is.
 
-**Completed.** `visitorsCompleted` means the person reached an exit step or aged out. It is not goal attainment.
+**Completed.** `visitorsCompleted` means the visitor reached an exit step or aged out. It is not goal attainment.
 
-**Entered.** People with the journey's entry tag. With a date range, it is filtered on when they were tagged,
+**Entered.** Visitors with the journey's entry tag. With a date range, it is filtered on when they were tagged,
 not on event dates.
 
 **Throttling. There are two different settings.**
-1. **Journey throttle** (a limit on how many journeys a person can be active in at once):
-   - It **blocks entry**. A held person gets no entry tag, so they are missing from "entered".
+1. **Journey throttle** (a limit on how many journeys a visitor can be active in at once):
+   - It **blocks entry**. A held visitor gets no entry tag, so they are missing from "entered".
    - They stay eligible. They are probably checked again on later runs, but that is inferred from the code and not confirmed.
-   - People already in a journey are never held.
+   - Visitors already in a journey are never held.
    - Nothing records who was held.
    - `ignoreThrottling` on the journey is readable. The subscription switch and cap are **not readable**.
-2. **Email throttle** (a limit on emails per person over a period of days):
+2. **Email throttle** (a limit on emails per visitor over a period of days):
    - It is applied by the email service.
    - Whether it delays or drops a send is **not documented anywhere we can read**.
    - Never name it as the cause of a missing send. You may list it as a possible cause.
-3. **`ignoreThrottling=false` doesn't mean people can't get several messages.** The journey throttle limits
-   how many journeys a person is active in at once, only when the subscription setting is on (unreadable), and
+3. **`ignoreThrottling=false` doesn't mean visitors can't get several messages.** The journey throttle limits
+   how many journeys a visitor is active in at once, only when the subscription setting is on (unreadable), and
    it doesn't apply to standalone emails.
 
 **Opens and clicks.**
@@ -89,12 +89,12 @@ not on event dates.
 - Conditional splits route on unfiltered clicks, so a split's counts can differ from the reads.
 
 **Conditional splits.** The rule isn't readable. Never work out what a split does from its name, and never
-recommend rewiring it. Say where people actually went, using `stepVisits` from `Pendo:getOrchestrateJourneyVisitors`.
+recommend rewiring it. Say where visitors actually went, using `stepVisits` from `Pendo:getOrchestrateJourneyVisitors`.
 
 **`metricsScope`** on email metrics:
 - `allActivityInPeriod` (default) counts any activity in the range, including on emails delivered earlier.
-- `emailsDeliveredInPeriod` counts only people who were delivered the email in the range. Its sent and
-  bounced counts are limited to those people, so they understate the period's sends and bounces.
+- `emailsDeliveredInPeriod` counts only visitors who were delivered the email in the range. Its sent and
+  bounced counts are limited to those visitors, so they understate the period's sends and bounces.
 - So use **two calls**: take sent, delivered and bounced from the default scope, and take opened, clicked and
   their rates from `emailsDeliveredInPeriod` (that stops open and click rates going over 100%). Never report sent
   or bounced from `emailsDeliveredInPeriod`.
@@ -104,7 +104,7 @@ recommend rewiring it. Say where people actually went, using `stepVisits` from `
 ## Methods that work
 
 **Exact engaged vs not engaged** (no sampling, no ID cap):
-1. Build the outcome segment with `Pendo:buildPendoSegment`: people who used the outcome item at least once between
+1. Build the outcome segment with `Pendo:buildPendoSegment`: visitors who used the outcome item at least once between
    two fixed dates.
 2. Call `Pendo:getOrchestrateEmailMetrics` for the email, `metricsScope=emailsDeliveredInPeriod`, twice: once without
    `segmentPipeline`, once with the segment's `pipeline` passed **verbatim**.
@@ -116,7 +116,7 @@ Do not sample visitor IDs into `Pendo:entityUsage` for this. A list cut at 500 o
 sample.
 
 **Who entered, and when they reached each step.**
-- `Pendo:getOrchestrateJourneyVisitors` with `enrollmentFilter=all` gives an uncapped total, plus each person's
+- `Pendo:getOrchestrateJourneyVisitors` with `enrollmentFilter=all` gives an uncapped total, plus each visitor's
   `enteredAt` and step entry times (`stepVisits`).
 - Step entry time is **not** send time. A step waits before it sends.
 
@@ -132,14 +132,24 @@ sample.
 
 Never say "there's no usage data for X" until you've searched every app and checked for events.
 
-**People with no email address** (they can't be sent anything):
-- Find the email field with `Pendo:visitorMetadataSchema` (often `visitor.agent.email`).
+**Visitors with no email address** (they can't be sent anything):
+- Find which field the emails send to. Read `recipientMetadataPropertyName` in each email step's `emailSettings`
+  (`Pendo:getOrchestrateEmail`). `agent.email` there means the visitor field `visitor.agent.email`. Don't pick a field
+  because its name looks right.
+- When emails name different fields, count each one separately.
+- When an email step leaves it empty, you can't say which field that email sends to. Don't report a
+  missing-address count as a cause for it: write that email addresses weren't checked. You can list the candidate
+  fields from `Pendo:visitorMetadataSchema` with the share of today's audience that has each, labelled as candidates,
+  and name the sender settings in Orchestrate as the place to check.
 - Build a segment with `Pendo:buildPendoSegment`: member of the audience segment AND that field empty. Call
   `Pendo:listVisitors` on it with `limit` 1: `summary.numVisitors` and `numAccounts` are the counts.
-- This counts **today's audience**, not the journey's entrants. It can include people who never entered and
+- This counts **today's audience**, not the journey's entrants. It can include visitors who never entered and
   miss entrants who have since left. So it is supporting evidence for a *possible* cause, never a count of the
   entered-but-not-sent gap. Report it as "N of today's audience have no email address".
 - The same applies to any count built on today's audience segment, such as inactivity.
+
+**Empty and absent fields.** `__EMPTY__` means the field is set and empty (an email subject, for example). A
+field the response doesn't include wasn't returned: write "not returned", never "none", "empty" or "not set".
 
 **How long until a message is sent** (send lag):
 - The configured wait is the sum of the step waits on the path.
@@ -148,11 +158,11 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - Say what share was sent the same day and what share the next day or later.
 - Step entry times (`stepVisits`) are not send times.
 
-**People who can't reach a step before the journey ends:**
-- For each message step, add up the waits before it on the path: the `durationInDays` of each email step before it. A guide step's days are how long the guide stays available, and the data doesn't show whether people move on sooner. When a guide step sits before the message, give the count both with and without its days, and say which is which.
+**Visitors who can't reach a step before the journey ends:**
+- For each message step, add up the waits before it on the path: the `durationInDays` of each email step before it. A guide step's days are how long the guide stays available, and the data doesn't show whether visitors move on sooner. When a guide step sits before the message, give the count both with and without its days, and say which is which.
 - Anyone who entered after the schedule end minus that total can never reach it.
 - Count them from `enteredAt` in `Pendo:getOrchestrateJourneyVisitors` (`all`), or from entries a day near the end.
-- Also count people whose last `stepVisits` entry is a step before the message, with `completed` false.
+- Also count visitors whose last `stepVisits` entry is a step before the message, with `completed` false.
 - Say the count. Don't just warn.
 
 **After an event or deadline date** (a date in the journey or email name, subject or description):
@@ -173,7 +183,7 @@ Never say "there's no usage data for X" until you've searched every app and chec
 - When no split fits (one day alone is over 5,000), stop splitting: write **Not counted** for that line and say
   why.
 
-**Windows that don't reconcile.** Step counts for a window count people who entered in it, so a window's sent
+**Windows that don't reconcile.** Step counts for a window count visitors who entered in it, so a window's sent
 can exceed its entered. When two windows don't add up, say so and don't split the gap between them.
 
 **Journey emails vs standalone emails.**
@@ -190,7 +200,7 @@ can exceed its entered. When two windows don't add up, say so and don't split th
 today's segment. If 25% or more already did it, say the goal is weak. At 50% or more, say it tells you nothing.
 
 **Test and operational sends.**
-- Treat a send as a likely test when it went to five people or fewer.
+- Treat a send as a likely test when it went to five visitors or fewer.
 - Treat a name with "test", "internal", "incident" or "outage" as a likely test or operational send.
 - Both are heuristics: label them and keep them out of campaign totals.
 
